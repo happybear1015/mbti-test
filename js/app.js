@@ -144,9 +144,8 @@ const App = {
           <div class="question-text">${lang === 'zh' ? q.zh : q.en}</div>
           <div class="options">${optionsHtml}</div>
         </div>
-        <div class="test-nav">
+        <div class="test-nav" style="min-height:48px">
           <button class="btn-secondary" onclick="App.prevQuestion()" ${index === 0 ? 'style="visibility:hidden"' : ''}>${t.prev_btn}</button>
-          <button class="btn-primary" onclick="App.nextQuestion()" style="display:none">${index === total - 1 ? t.complete_btn : t.next_btn}</button>
         </div>
       </div>
     `;
