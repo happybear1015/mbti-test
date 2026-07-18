@@ -146,7 +146,7 @@ const App = {
         </div>
         <div class="test-nav">
           <button class="btn-secondary" onclick="App.prevQuestion()" ${index === 0 ? 'style="visibility:hidden"' : ''}>${t.prev_btn}</button>
-          <button class="btn-primary" onclick="App.nextQuestion()" style="${selected ? '' : 'opacity:0.5;pointer-events:none'}">${index === total - 1 ? t.complete_btn : t.next_btn}</button>
+          <button class="btn-primary" onclick="App.nextQuestion()" style="display:none">${index === total - 1 ? t.complete_btn : t.next_btn}</button>
         </div>
       </div>
     `;
@@ -160,20 +160,10 @@ const App = {
     opts.forEach(opt => opt.classList.remove('selected'));
     if (opts[value - 1]) opts[value - 1].classList.add('selected');
 
-    const nextBtn = document.querySelector('.test-nav .btn-primary');
-    if (nextBtn) {
-      nextBtn.style.opacity = '1';
-      nextBtn.style.pointerEvents = 'auto';
-    }
-
-    clearTimeout(this._autoAdvance);
-    this._autoAdvance = setTimeout(() => {
-      if (this.state.screen === 'test') this.nextQuestion();
-    }, 350);
+    this.nextQuestion();
   },
 
   nextQuestion() {
-    clearTimeout(this._autoAdvance);
     const q = QUESTIONS[this.state.currentQ];
     if (!this.state.answers[q.id]) return;
     if (this.state.currentQ >= QUESTIONS.length - 1) {
@@ -185,7 +175,6 @@ const App = {
   },
 
   prevQuestion() {
-    clearTimeout(this._autoAdvance);
     if (this.state.currentQ > 0) {
       this.state.currentQ--;
       this.renderQuestion();
@@ -194,7 +183,6 @@ const App = {
 
   completeTest() {
     Storage.clearProgress();
-    clearTimeout(this._autoAdvance);
 
     const dimScores = {};
     const dimCounts = {};
