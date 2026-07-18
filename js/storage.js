@@ -21,5 +21,18 @@ const Storage = {
   },
   clearHistory() {
     localStorage.removeItem('mbti_history');
+  },
+  getProgress() {
+    try {
+      const d = JSON.parse(localStorage.getItem('mbti_progress'));
+      if (d && d.answers && typeof d.currentQ === 'number') return d;
+      return null;
+    } catch { return null; }
+  },
+  saveProgress(answers, currentQ) {
+    localStorage.setItem('mbti_progress', JSON.stringify({ answers, currentQ }));
+  },
+  clearProgress() {
+    localStorage.removeItem('mbti_progress');
   }
 };

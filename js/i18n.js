@@ -87,6 +87,9 @@ const I18N = {
       option_3: '中立',
       option_4: '同意',
       option_5: '非常同意',
+      resume_btn: '继续上次测试',
+      resume_desc: '已完成 {n} 题',
+      new_test_btn: '重新开始',
       loading: '加载中...',
     },
     en: {
@@ -139,6 +142,9 @@ const I18N = {
       option_3: 'Neutral',
       option_4: 'Agree',
       option_5: 'Strongly Agree',
+      resume_btn: 'Resume Test',
+      resume_desc: '{n} questions done',
+      new_test_btn: 'Start Over',
       loading: 'Loading...',
     }
   }

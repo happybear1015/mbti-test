@@ -16,6 +16,11 @@ const App = {
     } else {
       this.showWelcome();
     }
+    window.addEventListener('beforeunload', () => {
+      if (this.state.screen === 'test') {
+        Storage.saveProgress(this.state.answers, this.state.currentQ);
+      }
+    });
   },
 
   renderCurrentScreen() {
@@ -34,6 +39,20 @@ const App = {
     const lang = I18N.lang;
     const hCount = Storage.getHistory().length;
     const hText = hCount > 0 ? hCount + ' ' + (lang === 'zh' ? '次记录' : 'records') : (lang === 'zh' ? '暂无记录' : 'No records');
+    const progress = Storage.getProgress();
+    const answeredCount = progress ? Object.keys(progress.answers).length : 0;
+
+    let btnHtml;
+    if (progress) {
+      btnHtml = `
+        <button class="btn-primary" onclick="App.resumeTest()" style="margin-bottom:10px">${t.resume_btn}</button>
+        <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:16px">${t.resume_desc.replace('{n}', answeredCount)}</div>
+        <button class="btn-secondary" onclick="App.startTest()">${t.new_test_btn}</button>
+      `;
+    } else {
+      btnHtml = `<button class="btn-primary" onclick="App.startTest()" data-i18n="start_btn">${t.start_btn}</button>`;
+    }
+
     app.innerHTML = `
       <div class="app-header">
         <div class="app-logo" data-i18n="site_title">${t.site_title}</div>
@@ -62,7 +81,7 @@ const App = {
               <div class="card-value">${hText}</div>
             </div>
           </div>
-          <button class="btn-primary" onclick="App.startTest()" data-i18n="start_btn">${t.start_btn}</button>
+          ${btnHtml}
         </div>
       </div>
     `;
@@ -70,9 +89,19 @@ const App = {
   },
 
   startTest() {
+    Storage.clearProgress();
     this.state.screen = 'test';
     this.state.answers = {};
     this.state.currentQ = 0;
+    this.renderQuestion();
+  },
+
+  resumeTest() {
+    const progress = Storage.getProgress();
+    if (!progress) { this.showWelcome(); return; }
+    this.state.screen = 'test';
+    this.state.answers = progress.answers || {};
+    this.state.currentQ = progress.currentQ || 0;
     this.renderQuestion();
   },
 
@@ -125,17 +154,26 @@ const App = {
 
   selectAnswer(qId, value) {
     this.state.answers[qId] = value;
+    Storage.saveProgress(this.state.answers, this.state.currentQ);
+
     const opts = document.querySelectorAll('.option');
     opts.forEach(opt => opt.classList.remove('selected'));
     if (opts[value - 1]) opts[value - 1].classList.add('selected');
+
     const nextBtn = document.querySelector('.test-nav .btn-primary');
     if (nextBtn) {
       nextBtn.style.opacity = '1';
       nextBtn.style.pointerEvents = 'auto';
     }
+
+    clearTimeout(this._autoAdvance);
+    this._autoAdvance = setTimeout(() => {
+      if (this.state.screen === 'test') this.nextQuestion();
+    }, 350);
   },
 
   nextQuestion() {
+    clearTimeout(this._autoAdvance);
     const q = QUESTIONS[this.state.currentQ];
     if (!this.state.answers[q.id]) return;
     if (this.state.currentQ >= QUESTIONS.length - 1) {
@@ -147,6 +185,7 @@ const App = {
   },
 
   prevQuestion() {
+    clearTimeout(this._autoAdvance);
     if (this.state.currentQ > 0) {
       this.state.currentQ--;
       this.renderQuestion();
@@ -154,6 +193,9 @@ const App = {
   },
 
   completeTest() {
+    Storage.clearProgress();
+    clearTimeout(this._autoAdvance);
+
     const dimScores = {};
     const dimCounts = {};
     this.DIMS.forEach(d => { dimScores[d] = 0; dimCounts[d] = 0; });
